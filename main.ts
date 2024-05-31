@@ -8,6 +8,7 @@ import {
     listRestApis
 } from './apigatewayApi';
 import { Stage } from './types';
+import { createLambdaFunction, createRoleForLambdaFunction, updateLambdaFunction } from './lambdaApi';
 
 const ActionHelp = 'help';
 const ActionCreateQueue = 'createQueue';
@@ -16,6 +17,9 @@ const ActionListRestApis = 'listRestApis';
 const ActionDeployApiGateway = 'deployApiGateway';
 const ActionMakeApiRequest = 'makeApiRequest';
 const ActionDeleteApiGateway = 'deleteApiGateway';
+const ActionCreateRoleForLambdaFunction = 'createRoleForLambdaFunction';
+const ActionCreateLambdaFunction = 'createLambdaFunction';
+const ActionUpdateLambdaFunction = 'updateLambdaFunction';
 
 /**
  * Display usage message
@@ -136,6 +140,43 @@ try {
                 console.log('API Gateway deleted');
             })();
 
+            break;
+        }
+
+        case ActionCreateRoleForLambdaFunction: {
+            const functionName = process.argv[3];
+            if (functionName === undefined || functionName === '') {
+                throw new Error('Function name is required');
+            }
+            (async () => {
+                await createRoleForLambdaFunction(functionName);
+            })();
+            break;
+        }
+
+        case ActionCreateLambdaFunction: {
+            const functionName = process.argv[3];
+            if (functionName === undefined || functionName === '') {
+                throw new Error('Function name is required');
+            }
+            const roleArn = process.argv[4];
+            if (roleArn === undefined || roleArn === '') {
+                throw new Error('Role ARN is required');
+            }
+            (async () => {
+                await createLambdaFunction(functionName, roleArn);
+            })();
+            break;
+        }
+
+        case ActionUpdateLambdaFunction: {
+            const functionName = process.argv[3];
+            if (functionName === undefined || functionName === '') {
+                throw new Error('Function name is required');
+            }
+            (async () => {
+                await updateLambdaFunction(functionName);
+            })();
             break;
         }
 

@@ -30,3 +30,12 @@ npx ts-node main makeApiRequest tchc-apig-dev '{"test": "hello world", "somethin
 
 Use curl instead
 curl "https://${API_GATEWAY_ID}.execute-api.${AWS_DEFAULT_REGION}.amazonaws.com/${STAGE}/entry" -X POST -H "Content-Type: application/json" -d '{"test": "hello world", "something": "else"}'
+
+### Step 2: Manage your py code. See tchc-pdf-wrk
+
+### Step 3:
+
+npx ts-node main createRoleForLambdaFunction report_handle
+Copy the arn into setenv
+
+npx ts-node main createLambdaFunction report_handler $LAMBDA_FUNCTION_ROLE

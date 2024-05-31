@@ -163,7 +163,6 @@ export async function createRestApiAndSQSIntegration(
             type: 'AWS',
             integrationHttpMethod: 'POST',
             uri: `arn:aws:apigateway:${awsRegion}:sqs:path/${awsAccountId}/${queueName}`,
-            //uri: `arn:aws:apigateway:${awsRegion}:sqs:action/SendMessage/${queueName}`,
             credentials: role.Arn,
             requestParameters: {
                 'integration.request.header.Content-Type': "'application/x-www-form-urlencoded'"
@@ -171,14 +170,6 @@ export async function createRestApiAndSQSIntegration(
             requestTemplates: {
                 'application/json': 'Action=SendMessage&MessageBody=$input.body'
             }
-            // requestTemplates: {
-            //     'application/json': `{
-            //         "Action": "SendMessage",
-            //         "Version": "2012-11-05",
-            //         "MessageBody": "$input.body",
-            //         "QueueUrl": "https://sqs.${awsRegion}.amazonaws.com/${awsAccountId}/${queueName}"
-            //     }`
-            // }
         })
     );
 
@@ -205,8 +196,6 @@ export async function createRestApiAndSQSIntegration(
             }
         })
     );
-
-    //"MessageBody" : $util.escapeJavaScript($input.json('$')),
 
     console.log(`Successfully created API Gateway named ${apiName} with SQS integration`);
 }

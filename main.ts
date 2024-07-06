@@ -2,24 +2,34 @@ import process from 'process';
 import { createQueue } from './sqsApi';
 import {
     createApiGateway,
+    createGetRestApiWithLambdaIntegration,
     createRestApiAndSQSIntegration,
     deleteApiGateway,
     deployApiGateway,
     listRestApis
 } from './apigatewayApi';
 import { Stage } from './types';
-import { createLambdaFunction, createRoleForLambdaFunction, updateLambdaFunction } from './lambdaApi';
+import {
+    attachPoliciesToRole,
+    createEventSourceMapping,
+    createLambdaFunction,
+    createRoleForLambdaFunction,
+    updateLambdaFunction
+} from './lambdaApi';
 
 const ActionHelp = 'help';
 const ActionCreateQueue = 'createQueue';
 const ActionCreateRestApiAndSQSIntegration = 'createRestApiAndSQSIntegration';
+const ActionCreateGetRestApiWithLambdaIntegration = 'createGetRestApiWithLambdaIntegration';
 const ActionListRestApis = 'listRestApis';
 const ActionDeployApiGateway = 'deployApiGateway';
 const ActionMakeApiRequest = 'makeApiRequest';
 const ActionDeleteApiGateway = 'deleteApiGateway';
 const ActionCreateRoleForLambdaFunction = 'createRoleForLambdaFunction';
+const ActionAttachPoliciesToRole = 'attachPoliciesToRole';
 const ActionCreateLambdaFunction = 'createLambdaFunction';
 const ActionUpdateLambdaFunction = 'updateLambdaFunction';
+const ActionCreateEventSourceMapping = 'createEventSourceMapping';
 
 /**
  * Display usage message
@@ -77,6 +87,29 @@ try {
             (async () => {
                 const result = await createRestApiAndSQSIntegration(apiName, queueName, awsAccountId, region);
                 console.log('API Gateway function created with SQS integration:', result);
+            })();
+
+            break;
+        }
+
+        case ActionCreateGetRestApiWithLambdaIntegration: {
+            const apiName = process.argv[3];
+            if (apiName === undefined || apiName === '') {
+                throw new Error('API name is required');
+            }
+            const lambdaFunctionName = process.argv[4];
+            if (lambdaFunctionName === undefined || lambdaFunctionName === '') {
+                throw new Error('Lambda function name is required');
+            }
+
+            (async () => {
+                const result = await createGetRestApiWithLambdaIntegration(
+                    apiName,
+                    lambdaFunctionName,
+                    awsAccountId,
+                    region
+                );
+                console.log('API Gateway function created with Lambda integration:', result);
             })();
 
             break;
@@ -154,6 +187,17 @@ try {
             break;
         }
 
+        case ActionAttachPoliciesToRole: {
+            const roleName = process.argv[3];
+            if (roleName === undefined || roleName === '') {
+                throw new Error('Role name is required');
+            }
+            (async () => {
+                await attachPoliciesToRole(roleName);
+            })();
+            break;
+        }
+
         case ActionCreateLambdaFunction: {
             const functionName = process.argv[3];
             if (functionName === undefined || functionName === '') {
@@ -176,6 +220,21 @@ try {
             }
             (async () => {
                 await updateLambdaFunction(functionName);
+            })();
+            break;
+        }
+
+        case ActionCreateEventSourceMapping: {
+            const queueArn = process.argv[3];
+            if (queueArn === undefined || queueArn === '') {
+                throw new Error('Queue ARN is required');
+            }
+            const functionName = process.argv[4];
+            if (functionName === undefined || functionName === '') {
+                throw new Error('Function name is required');
+            }
+            (async () => {
+                await createEventSourceMapping(queueArn, functionName);
             })();
             break;
         }

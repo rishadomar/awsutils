@@ -210,3 +210,159 @@ export async function deployApiGateway(apiName: string, stage: Stage) {
     const result = await apiGateway.send(new CreateDeploymentCommand({ restApiId: api.id, stageName: stage }));
     console.log('Deploy API result:', result);
 }
+
+export async function createPostRestApiWithLambdaIntegration(
+    apiName: string,
+    lambdaFunctionName: string,
+    awsAccountId: string,
+    awsRegion: string
+) {
+    // Create IAM role for API Gateway
+    const role = await createRole(apiName);
+
+    // Create REST API
+    const api = await createApiGateway(apiName);
+
+    // Get the root resource of the API
+    const allResources = await apiGateway.send(new GetResourcesCommand({ restApiId: api.id }));
+    const rootResource = allResources.items?.find((resource) => resource.path === '/');
+
+    if (!rootResource) {
+        throw new Error('Failed to get root resource of API Gateway');
+    }
+
+    // Create a resource under the root resource
+    const resource = await apiGateway.send(
+        new CreateResourceCommand({ restApiId: api.id, parentId: rootResource.id, pathPart: 'entry' })
+    );
+
+    // Create a POST method for the resource
+    await apiGateway.send(
+        new PutMethodCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'POST',
+            authorizationType: 'NONE'
+        })
+    );
+
+    // Set the Lambda function as the integration for the POST method
+    await apiGateway.send(
+        new PutIntegrationCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'POST',
+            type: 'AWS_PROXY',
+            integrationHttpMethod: 'POST',
+            uri: `arn:aws:apigateway:${awsRegion}:lambda:path/2015-03-31/functions/arn:aws:lambda:${awsRegion}:${awsAccountId}:function:${lambdaFunctionName}/invocations`,
+            credentials: role.Arn,
+            requestTemplates: {
+                'application/json': "$input.json('$')"
+            }
+        })
+    );
+
+    await apiGateway.send(
+        new PutIntegrationResponseCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'POST',
+            statusCode: '200',
+            responseTemplates: {
+                'application/json': ''
+            }
+        })
+    );
+
+    await apiGateway.send(
+        new PutMethodResponseCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'POST',
+            statusCode: '200',
+            responseModels: {
+                'application/json': 'Empty'
+            }
+        })
+    );
+
+    console.log(`Successfully created API Gateway named ${apiName} with Lambda integration`);
+}
+
+export async function createGetRestApiWithLambdaIntegration(
+    apiName: string,
+    lambdaFunctionName: string,
+    awsAccountId: string,
+    awsRegion: string
+) {
+    // Create IAM role for API Gateway
+    const role = await createRole(apiName);
+
+    // Create REST API
+    const api = await createApiGateway(apiName);
+
+    // Get the root resource of the API
+    const allResources = await apiGateway.send(new GetResourcesCommand({ restApiId: api.id }));
+    const rootResource = allResources.items?.find((resource) => resource.path === '/');
+
+    if (!rootResource) {
+        throw new Error('Failed to get root resource of API Gateway');
+    }
+
+    // Create a resource under the root resource
+    const resource = await apiGateway.send(
+        new CreateResourceCommand({ restApiId: api.id, parentId: rootResource.id, pathPart: 'entry' })
+    );
+
+    // Create a GET method for the resource
+    await apiGateway.send(
+        new PutMethodCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'GET',
+            authorizationType: 'NONE'
+        })
+    );
+
+    // Set the Lambda function as the integration for the GET method
+    await apiGateway.send(
+        new PutIntegrationCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'GET',
+            type: 'AWS_PROXY',
+            integrationHttpMethod: 'POST',
+            uri: `arn:aws:apigateway:${awsRegion}:lambda:path/2015-03-31/functions/arn:aws:lambda:${awsRegion}:${awsAccountId}:function:${lambdaFunctionName}/invocations`,
+            credentials: role.Arn,
+            requestTemplates: {
+                'application/json': "$input.json('$')"
+            }
+        })
+    );
+
+    await apiGateway.send(
+        new PutIntegrationResponseCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'GET',
+            statusCode: '200',
+            responseTemplates: {
+                'application/json': ''
+            }
+        })
+    );
+
+    await apiGateway.send(
+        new PutMethodResponseCommand({
+            restApiId: api.id,
+            resourceId: resource.id,
+            httpMethod: 'GET',
+            statusCode: '200',
+            responseModels: {
+                'application/json': 'Empty'
+            }
+        })
+    );
+
+    console.log(`Successfully created API Gateway named ${apiName} with Lambda integration`);
+}

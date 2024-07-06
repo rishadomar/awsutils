@@ -35,7 +35,16 @@ curl "https://${API_GATEWAY_ID}.execute-api.${AWS_DEFAULT_REGION}.amazonaws.com/
 
 ### Step 3:
 
-npx ts-node main createRoleForLambdaFunction report_handle
+npx ts-node main createRoleForLambdaFunction report_handler
 Copy the arn into setenv
 
+npx ts-node main attachPoliciesToRole $LAMBDA_FUNCTION_ROLE
+
 npx ts-node main createLambdaFunction report_handler $LAMBDA_FUNCTION_ROLE
+
+npx ts-node main updateLambdaFunction report_handler
+
+npx ts-node main createEventSourceMapping $QUEUE_ARN report_handler
+
+I deployed manually (using the aws console) to the dev stage
+curl https://n40h3zmr66.execute-api.eu-west-1.amazonaws.com/entry -X POST -H "x-api-key: hk3P1499Gl8wqAuEgyq69aRZrE1hma9o2RVEQAVv" -d '{"Records": [{"body": "{\"first_name\": \"Rishad\",\"last_name\": \"Test\",\"email\": \"rishad@aux.co.za\",\"country\": \"ZA\",\"company\": \"Aux Design Studio\"}"}]}'
